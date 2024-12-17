@@ -1,4 +1,4 @@
-import { cardTemplate } from "../index";
+import { cardsContainer, cardTemplate } from "../index";
 
 // Функция создания карточки
 export function addCard({name, link}, deleteCard, openPopupCard, putLike) {
@@ -18,6 +18,7 @@ export function addCard({name, link}, deleteCard, openPopupCard, putLike) {
   // открытие картинки в полный размер
   imageElement.addEventListener('click', () => openPopupCard({name, link}));
 
+  // лайк
   likeButton.addEventListener('click', (like) => putLike(like));
 
   return cardElement;
@@ -28,8 +29,14 @@ export function deleteCard(card) {
   card.remove();
 }
 
+// Функция лайка карточки
 export function putLike(item) {
   item.target.classList.toggle('card__like-button_is-active');
+}
+
+// Функция добавления карточки
+export function renderCard(card) {
+  cardsContainer.prepend(card);
 }
 
 
