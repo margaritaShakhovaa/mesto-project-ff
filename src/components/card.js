@@ -1,4 +1,5 @@
-import { cardsContainer, cardTemplate } from "../index";
+// Темплейт карточки
+export const cardTemplate = document.querySelector('#card-template').content;
 
 // Функция создания карточки
 export function addCard({name, link}, deleteCard, openPopupCard, putLike) {
@@ -33,10 +34,3 @@ export function deleteCard(card) {
 export function putLike(item) {
   item.target.classList.toggle('card__like-button_is-active');
 }
-
-// Функция добавления карточки
-export function renderCard(card) {
-  cardsContainer.prepend(card);
-}
-
-

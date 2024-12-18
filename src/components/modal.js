@@ -1,6 +1,3 @@
-import { popupCardElement, popupCardImage } from "../index";
-
-
 // Функция открытия попап форм
 export function openPopup(popup) {
   popup.classList.add('popup_is-opened');
@@ -13,7 +10,7 @@ export function closePopup(popup) {
   document.removeEventListener('keydown', closeByEsc);
 }
 
-// Закрытие попап по ESC
+// Функция закрытие попап по ESC
 function closeByEsc(evt) {
   if (evt.key === 'Escape') {
     const openedPopup = document.querySelector('.popup_is-opened');
@@ -21,10 +18,9 @@ function closeByEsc(evt) {
   }
 }
 
-// Функция открытия попап с картинкой
-export function openPopupCard({name, link}) {
-  openPopup(popupCardElement);
-  popupCardElement.querySelector('.popup__caption').textContent = name;
-  popupCardImage.src = link;
-  popupCardImage.alt = name;
+// Функция закрытие попап кликом на оверлей
+export function closeByOverlay(evt) {
+  if (!evt.target.matches('.popup__is-opened')) {
+    closePopup(evt.target);
+  }
 }
