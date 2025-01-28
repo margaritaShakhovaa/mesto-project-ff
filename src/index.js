@@ -1,7 +1,9 @@
 import './pages/index.css';
 import { addCard, deleteCard, putLike } from "./components/card";
-import {closeByOverlay, closePopup, openPopup} from "./components/modal";
+import { closeByOverlay, closePopup, openPopup } from "./components/modal";
 import { initialCards } from "./scripts/cards";
+import {clearValidation, enableValidation} from "./components/validation";
+import {settings} from "./components/utils";
 
 // DOM узлы
 export const cardsContainer = document.querySelector('.places__list');
@@ -52,13 +54,18 @@ renderCards();
 //ПОПАП СЛУШАТЕЛИ
 // 1. Открытие попап редактирования профиля
 profileEditButton.addEventListener('click', function () {
+  clearValidation(popupEditElement);
   nameInput.value =profileTitle.textContent;
   descriptionInput.value = profileDescription.textContent;
   openPopup(popupEditElement);
 });
 
 // 2. Открытие попап добавления карточки
-profileAddButton.addEventListener('click', () => openPopup(popupAddElement));
+profileAddButton.addEventListener('click', function () {
+  clearValidation(popupAddElement);
+  openPopup(popupAddElement);
+  addCardFormElement.reset();
+});
 
 // 3. Закрытие любого попап по клику по кнопке закрытия
 popupCloseButtonList.forEach(btn => {
@@ -102,3 +109,7 @@ export function handleAddCardFormSubmit (evt) {
 }
 // 3. Прикрепляем обработчик к форме: он будет следить за событием “submit” - «отправка»
 addCardFormElement.addEventListener('submit', handleAddCardFormSubmit);
+
+
+// Включение валидации форм
+enableValidation(settings);
