@@ -1,9 +1,9 @@
 import './pages/index.css';
-import { addCard, deleteCard, putLike } from "./components/card";
+import { addCard } from "./components/card";
 import { closeByOverlay, closePopup, openPopup } from "./components/modal";
-import { initialCards } from "./scripts/cards";
-import {clearValidation, enableValidation} from "./components/validation";
-import {settings} from "./components/utils";
+import { clearValidation, enableValidation } from "./components/validation";
+import { settings } from "./components/utils";
+import { getInitialCards, getUser } from "./components/api";
 
 // DOM узлы
 export const cardsContainer = document.querySelector('.places__list');
@@ -28,28 +28,27 @@ const addCardFormElement = document.forms['new-place'];
 const nameCardInput = addCardFormElement.querySelector('.popup__input_type_card-name');
 const linkCardInput = addCardFormElement.querySelector('.popup__input_type_url');
 
-// Вывести карточки на страницу
-function renderCards() {
-  initialCards.forEach(({name, link}) => {
-    cardsContainer.append(addCard({name, link}, deleteCard, openPopupCard, putLike));
-  })
-}
+let userId;
 
-// Функция добавления карточки
-function renderCard(card) {
-  cardsContainer.prepend(card);
-}
+// Загрузка информации о пользователе с сервера и загрузка карточек с сервера
+Promise.all([getUser(), getInitialCards()])
+  .then(([userInfo, cards]) => {
+    userId = userInfo._id;
+    nameInput.textContent = userInfo.name;
+    descriptionInput.textContent = userInfo.about;
+    // avatarElement.src = userInfo.avatar;
+
+    cards.forEach(item => cardsContainer.append(addCard(item.name, item.link, item.likes, item.owner._id, item._id, userId)))
+  })
+  .catch(err => console.log(err))
 
 // Функция открытия попап с картинкой
-export function openPopupCard({name, link}) {
+export function openPopupCard(name, link) {
   openPopup(popupCardElement);
   popupCardElement.querySelector('.popup__caption').textContent = name;
   popupCardImage.src = link;
   popupCardImage.alt = name;
 }
-
-// Вывести карточки на страницу
-renderCards();
 
 //ПОПАП СЛУШАТЕЛИ
 // 1. Открытие попап редактирования профиля
@@ -95,20 +94,20 @@ function handleEditFormSubmit(evt) {
 editFormElement.addEventListener('submit', handleEditFormSubmit);
 
 
-// ПОПАП ДОБАВЛЕНИЯ НОВОЙ КАРТОЧКИ
-// 1. Находим форму в DOM
-// 2. Обработчик «отправки» формы
-export function handleAddCardFormSubmit (evt) {
-  evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
-  // Элементы, куда будет вставлено новое значение
-  const name = nameCardInput.value;
-  const link= linkCardInput.value;
-  renderCard(addCard({name, link}, deleteCard, openPopupCard, putLike));
-  closePopup(popupAddElement);
-  addCardFormElement.reset();
-}
-// 3. Прикрепляем обработчик к форме: он будет следить за событием “submit” - «отправка»
-addCardFormElement.addEventListener('submit', handleAddCardFormSubmit);
+// // ПОПАП ДОБАВЛЕНИЯ НОВОЙ КАРТОЧКИ
+// // 1. Находим форму в DOM
+// // 2. Обработчик «отправки» формы
+// export function handleAddCardFormSubmit (evt) {
+//   evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
+//   // Элементы, куда будет вставлено новое значение
+//   const name = nameCardInput.value;
+//   const link= linkCardInput.value;
+//   renderCard(addCard({name, link}, deleteCard, openPopupCard, putLike));
+//   closePopup(popupAddElement);
+//   addCardFormElement.reset();
+// }
+// // 3. Прикрепляем обработчик к форме: он будет следить за событием “submit” - «отправка»
+// addCardFormElement.addEventListener('submit', handleAddCardFormSubmit);
 
 
 // Включение валидации форм
