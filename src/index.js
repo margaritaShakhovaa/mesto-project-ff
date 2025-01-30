@@ -43,8 +43,8 @@ let userId;
 Promise.all([getUser(), getInitialCards()])
   .then(([userInfo, cards]) => {
     userId = userInfo._id;
-    nameInput.textContent = userInfo.name;
-    descriptionInput.textContent = userInfo.about;
+    profileTitle.textContent = userInfo.name;
+    profileDescription.textContent = userInfo.about;
     profileAvatar.src = userInfo.avatar;
     cards.forEach(item => cardsContainer.append(addCard(item.name, item.link, item.likes, item.owner._id, item._id, userId)))
   })
