@@ -1,9 +1,9 @@
 import './pages/index.css';
-import { addCard } from "./components/card";
+import { addCard, renderCard } from "./components/card";
 import { closeByOverlay, closePopup, openPopup } from "./components/modal";
 import { clearValidation, enableValidation } from "./components/validation";
-import { settings } from "./components/utils";
-import { getInitialCards, getUser } from "./components/api";
+import { renderCreateLoading, renderSaveLoading, setButtonState, settings } from "./components/utils";
+import { addNewCardApi, getInitialCards, getUser, updateUser, updateUserAvatar } from "./components/api";
 
 // DOM узлы
 export const cardsContainer = document.querySelector('.places__list');
@@ -11,11 +11,13 @@ export const cardsContainer = document.querySelector('.places__list');
 const popupList = document.querySelectorAll('.popup');
 const popupEditElement = document.querySelector('.popup_type_edit');
 const popupAddElement = document.querySelector('.popup_type_new-card');
+const popupAvatarElement = document.querySelector('.popup_type_avatar');
 export const popupCardElement = document.querySelector('.popup_type_image');
 export const popupCardImage = document.querySelector('.popup__image');
 // кнопки
 const profileEditButton=document.querySelector('.profile__edit-button');
 const profileAddButton = document.querySelector('.profile__add-button');
+const avatarEditButton = document.querySelector('.profile__image-button');
 const popupCloseButtonList= document.querySelectorAll('.popup__close');
 // форма и инпуты редактирования профиля
 const editFormElement = document.forms['edit-profile'];
@@ -23,10 +25,17 @@ const profileTitle = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
 const nameInput = editFormElement.querySelector('.popup__input_type_name');
 const descriptionInput = editFormElement.querySelector('.popup__input_type_description');
+const submitProfileButton = editFormElement.querySelector('.popup__button');
+// форма и инпуты редактирования аватара
+const avatarFormElement = document.forms['edit-avatar'];
+const profileAvatar = document.querySelector('.profile__image');
+const avatarInput = avatarFormElement.querySelector('.popup__input_type_avatar');
+const submitAvatarButton = avatarFormElement.querySelector('.popup__button');
 // форма и инпуты добавления новой карточки
 const addCardFormElement = document.forms['new-place'];
 const nameCardInput = addCardFormElement.querySelector('.popup__input_type_card-name');
 const linkCardInput = addCardFormElement.querySelector('.popup__input_type_url');
+const submitAddCardButton = addCardFormElement.querySelector('.popup__button');
 
 let userId;
 
@@ -36,11 +45,50 @@ Promise.all([getUser(), getInitialCards()])
     userId = userInfo._id;
     nameInput.textContent = userInfo.name;
     descriptionInput.textContent = userInfo.about;
-    // avatarElement.src = userInfo.avatar;
-
+    profileAvatar.src = userInfo.avatar;
     cards.forEach(item => cardsContainer.append(addCard(item.name, item.link, item.likes, item.owner._id, item._id, userId)))
   })
   .catch(err => console.log(err))
+
+
+// ПОПАП РЕДАКТИРОВАНИЯ И СОХРАНЕНИЯ ИНФОРМАЦИИ О СЕБЕ
+function handleEditFormSubmit(evt) {
+  evt.preventDefault();
+  renderSaveLoading(popupEditElement, true);
+  profileTitle.textContent = nameInput.value;
+  profileDescription.textContent = descriptionInput.value;
+  updateUser(nameInput.value, descriptionInput.value).then(res => console.log(res))
+    .catch(err => console.log(err))
+    .finally(() => renderSaveLoading(popupEditElement, false))
+  closePopup(popupEditElement);
+}
+editFormElement.addEventListener('submit', handleEditFormSubmit);
+
+
+// ПОПАП ДОБАВЛЕНИЯ НОВОЙ КАРТОЧКИ
+function handleAddCardFormSubmit (evt) {
+  evt.preventDefault();
+  renderCreateLoading(popupAddElement, true);
+  addNewCardApi(nameCardInput.value,linkCardInput.value).then(card => renderCard(addCard(card.name, card.link, card.likes, card.owner._id, card._id, userId)))
+    .catch(err => console.log(err))
+  .finally(() => renderCreateLoading(popupAddElement, false))
+  closePopup(popupAddElement);
+  addCardFormElement.reset();
+}
+addCardFormElement.addEventListener('submit', handleAddCardFormSubmit);
+
+
+// ПОПАП РЕДАКТИРОВАНИЯ АВАТАРА
+function handleSubmitAvatar (evt) {
+  evt.preventDefault();
+  renderSaveLoading(popupAvatarElement, true);
+  updateUserAvatar(avatarInput.value).then(res => profileAvatar.style.backgroundImage = `url(${res.avatar})`)
+    .catch(err => console.log(err))
+  .finally(() => renderSaveLoading(popupAvatarElement, false))
+  closePopup(popupAvatarElement);
+}
+avatarFormElement.addEventListener('submit', handleSubmitAvatar);
+
 
 // Функция открытия попап с картинкой
 export function openPopupCard(name, link) {
@@ -57,16 +105,26 @@ profileEditButton.addEventListener('click', function () {
   nameInput.value =profileTitle.textContent;
   descriptionInput.value = profileDescription.textContent;
   openPopup(popupEditElement);
+  setButtonState(submitProfileButton, true);
 });
 
-// 2. Открытие попап добавления карточки
+// 2. Открытие попап редактирования аватара
+avatarEditButton.addEventListener('click', function () {
+  clearValidation(popupAvatarElement);
+  openPopup(popupAvatarElement);
+  avatarFormElement.reset();
+  setButtonState(submitAvatarButton, true);
+})
+
+// 3. Открытие попап добавления карточки
 profileAddButton.addEventListener('click', function () {
   clearValidation(popupAddElement);
   openPopup(popupAddElement);
   addCardFormElement.reset();
+  setButtonState(submitAddCardButton, true);
 });
 
-// 3. Закрытие любого попап по клику по кнопке закрытия
+// 4. Закрытие любого попап по клику по кнопке закрытия
 popupCloseButtonList.forEach(btn => {
   const popup = btn.closest('.popup');
   btn.addEventListener('click', () => closePopup(popup));
@@ -76,39 +134,6 @@ popupCloseButtonList.forEach(btn => {
 popupList.forEach(popup => (
   popup.addEventListener('click', closeByOverlay)
 ));
-
-// ПОПАП РЕДАКТИРОВАНИЯ И СОХРАНЕНИЯ ИНФОРМАЦИИ О СЕБЕ
-// 1. Находим форму в DOM
-// 2. Находим поля формы в DOM
-// 3. Обработчик «отправки» формы
-function handleEditFormSubmit(evt) {
-  evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
-  // Получите значение полей jobInput и nameInput из свойства value
-  // Выберите элементы, куда должны быть вставлены значения полей
-  // Вставьте новые значения с помощью textContent
-  profileTitle.textContent = nameInput.value;
-  profileDescription.textContent = descriptionInput.value;
-  closePopup(popupEditElement);
-}
-// 4. Прикрепляем обработчик к форме: он будет следить за событием “submit” - «отправка»
-editFormElement.addEventListener('submit', handleEditFormSubmit);
-
-
-// // ПОПАП ДОБАВЛЕНИЯ НОВОЙ КАРТОЧКИ
-// // 1. Находим форму в DOM
-// // 2. Обработчик «отправки» формы
-// export function handleAddCardFormSubmit (evt) {
-//   evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
-//   // Элементы, куда будет вставлено новое значение
-//   const name = nameCardInput.value;
-//   const link= linkCardInput.value;
-//   renderCard(addCard({name, link}, deleteCard, openPopupCard, putLike));
-//   closePopup(popupAddElement);
-//   addCardFormElement.reset();
-// }
-// // 3. Прикрепляем обработчик к форме: он будет следить за событием “submit” - «отправка»
-// addCardFormElement.addEventListener('submit', handleAddCardFormSubmit);
-
 
 // Включение валидации форм
 enableValidation(settings);

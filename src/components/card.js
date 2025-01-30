@@ -7,7 +7,7 @@ export const cardTemplate = document.querySelector('#card-template').content;
 // Функция добавления карточки
 export function renderCard(card) {
   cardsContainer.prepend(card);
-};
+}
 
 // Функция добавления лайка
 const putLike = (button, counter, idCard) => {
