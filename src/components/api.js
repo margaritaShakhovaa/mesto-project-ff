@@ -6,7 +6,7 @@ const config = {
   }
 }
 
-export function getResponse(res) {
+function getResponse(res) {
   if(res.ok) {
     return res.json();
   }
