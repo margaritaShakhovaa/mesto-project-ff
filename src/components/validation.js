@@ -63,6 +63,7 @@ const setEventListeners = (formElement, settings) => {
   });
 };
 
+// Функция, которая очищает ошибки в формах
 export const clearValidation = (form, settings) => {
   const inputList = Array.from(form.querySelectorAll(settings.inputSelector));
   const buttonElement = form.querySelector(settings.buttonSelector);
@@ -72,7 +73,6 @@ export const clearValidation = (form, settings) => {
   buttonElement.disabled = true;
   buttonElement.classList.add(settings.inactiveButtonClass);
 }
-
 
 export const enableValidation = (settings) => {
   const formList = Array.from(document.querySelectorAll(settings.formSelector));

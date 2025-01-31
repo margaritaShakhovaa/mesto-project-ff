@@ -146,7 +146,7 @@ popupCloseButtonList.forEach(btn => {
   btn.addEventListener('click', () => closePopup(popup));
 });
 
-// 4. Закрытие попапа кликом на оверлей
+// 5. Закрытие попапа кликом на оверлей
 popupList.forEach(popup => (
   popup.addEventListener('click', closeByOverlay)
 ));

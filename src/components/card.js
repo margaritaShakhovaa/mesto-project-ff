@@ -1,6 +1,5 @@
 import { deleteCardApi, deleteLikeApi, putLikeApi } from "./api";
 
-
 // Функция создания карточки
 export function addCard(card, deleteCardHandler, putLikeHandler, deleteLikeHandler, openPopupCardHandler, userId) {
   const cardTemplate = document.querySelector('#card-template').content;
